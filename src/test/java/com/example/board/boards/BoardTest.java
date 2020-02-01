@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+//lombok test
 @RunWith(JUnitParamsRunner.class)
 public class BoardTest {
     @Test

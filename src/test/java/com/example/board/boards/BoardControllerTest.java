@@ -78,6 +78,8 @@ public class BoardControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("name").exists())
+                .andExpect(jsonPath("title").exists())
+                .andExpect(jsonPath("content").exists())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(jsonPath("_links.self").exists())
                 ;
@@ -90,6 +92,52 @@ public class BoardControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 ;
+    }
+
+    //특정 게시글 정상적으로 업데이트하는지 테스트
+    @Test
+    public void updateBoard() throws Exception {
+        Board board = generateBoard(100);
+
+        this.mockMvc.perform(put("/api/boards/{id}", board.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(board))
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").exists())
+                .andExpect(jsonPath("title").exists())
+                .andExpect(jsonPath("content").exists())
+                .andExpect(jsonPath("id").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                ;
+    }
+
+    //입력값이 비어있는 경우에 게시글 수정 실패
+    @Test
+    public void updateBoard400_Empty() throws Exception {
+        Board board = generateBoard(200);
+
+        this.mockMvc.perform(put("/api/boards/{id}", board.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(Board.builder().build()))
+        )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    //존재하지 않는 게시글 수정 실패
+    @Test
+    public void updateBoard404() throws Exception {
+        Board board = generateBoard(100);
+
+        this.mockMvc.perform(put("/api/boards/134332")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(board))
+        )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+        ;
     }
 
     //테스트값 생성
