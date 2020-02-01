@@ -1,20 +1,17 @@
 package com.example.board.boards;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
+import javax.xml.ws.Response;
 import java.net.URI;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.http.ResponseEntity.badRequest;
 
 @Controller
 @RequestMapping(value="/api/boards")
@@ -42,5 +39,16 @@ public class BoardController {
         boardResource.add(selfLinkBuilder.withRel("delete-board"));
 
         return ResponseEntity.created(createdUri).body(boardResource);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity getBoard(@PathVariable Integer id) {
+        Optional<Board> optionalBoard = this.boardRepository.findById(id);
+        if(!optionalBoard.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        Board board = optionalBoard.get();
+        BoardResource boardResource = new BoardResource(board);
+        return ResponseEntity.ok(boardResource);
     }
 }

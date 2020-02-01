@@ -5,6 +5,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 @Builder @AllArgsConstructor @NoArgsConstructor
@@ -14,8 +16,11 @@ public class Board {
     @Id
     @GeneratedValue
     private Integer id;
+    @NotEmpty
     private String name;
+    @NotEmpty
     private String title;
+    @NotEmpty
     private String content;
     @CreationTimestamp
     private Date createdDateTime;

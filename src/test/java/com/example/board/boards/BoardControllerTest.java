@@ -12,9 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.print.attribute.standard.Media;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -28,6 +26,9 @@ public class BoardControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    BoardRepository boardRepository;
 
     //정상적으로 글을 쓰는지 테스트
     @Test
@@ -64,7 +65,40 @@ public class BoardControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(this.objectMapper.writeValueAsString(board))
         )
+                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
+    //특정 게시글 정상적으로 조회하는지 테스트
+    @Test
+    public void getBoard() throws Exception {
+        Board board = generateBoard(100);
+
+        this.mockMvc.perform(get("/api/boards/{id}", board.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").exists())
+                .andExpect(jsonPath("id").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                ;
+    }
+
+    //없는 게시글을 조회했을 때 404에러 응답
+    @Test
+    public void getBoard404() throws Exception {
+        this.mockMvc.perform(get("/api/boards/13123"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                ;
+    }
+
+    //테스트값 생성
+    public Board generateBoard(int index) {
+        Board board = Board.builder()
+                .name("board" + index)
+                .title("board title")
+                .content("board content")
+                .build();
+        return this.boardRepository.save(board);
+    }
 }
