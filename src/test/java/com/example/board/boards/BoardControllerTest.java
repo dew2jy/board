@@ -140,6 +140,26 @@ public class BoardControllerTest {
         ;
     }
 
+    //특정 게시글 정상적으로 삭제
+    @Test
+    public void deleteBoard() throws Exception {
+        Board board = generateBoard(400);
+
+        this.mockMvc.perform(delete("/api/boards/{id}", board.getId()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    //존재하지 않는 게시글 삭제 실패
+    @Test
+    public void deleteBoard404() throws Exception {
+        Board board = generateBoard(500);
+
+        this.mockMvc.perform(delete("/api/boards/23234293"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
     //테스트값 생성
     public Board generateBoard(int index) {
         Board board = Board.builder()
@@ -149,4 +169,5 @@ public class BoardControllerTest {
                 .build();
         return this.boardRepository.save(board);
     }
+
 }

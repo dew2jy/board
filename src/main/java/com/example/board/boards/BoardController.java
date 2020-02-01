@@ -76,4 +76,17 @@ public class BoardController {
         BoardResource boardResource = new BoardResource(originBoard);
         return ResponseEntity.ok(boardResource);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteBoard(@PathVariable Integer id) {
+        Optional<Board> optionalBoard = this.boardRepository.findById(id);
+        if(!optionalBoard.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Board board = optionalBoard.get();
+        this.boardRepository.delete(board);
+
+        return ResponseEntity.noContent().build();
+    }
 }
