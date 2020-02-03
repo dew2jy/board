@@ -4,11 +4,17 @@ import com.example.board.common.AppProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -41,18 +47,39 @@ public class BoardController {
     }
 
     @GetMapping(value = "/list")
-    public String listBoards(Model model) {
-        model.addAttribute("boards", this.boardRepository.findAll());
+    public String listBoards(Model model,
+                             @PageableDefault(sort = { "id" }, direction = Sort.Direction.DESC, size = 3)Pageable pageable) {
+        Page<Board> all = this.boardRepository.findAll(pageable);
+
+        model.addAttribute("boards", all);
+
+        int pageSize = pageable.getPageSize();
+        int pageGroupSize = 2;
+        int currentPage = pageable.getPageNumber()+1;
+        int startPage = ((currentPage - 1) / pageGroupSize) * pageGroupSize + 1;
+        int endPage = startPage + pageGroupSize - 1;
+        int totalPages = all.getTotalPages();
+
+        if(endPage > totalPages) endPage = totalPages;
+
+        model.addAttribute("endPage", endPage);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("pageGroupSize", pageGroupSize);
 
         return "list";
     }
 
     @GetMapping(value = "/write")
     public String writeBoardsForm(Integer id, Board board, Model model) {
-        Optional<Board> optional = this.boardRepository.findById(id);
+        if(id != null) {
+            Optional<Board> optional = this.boardRepository.findById(id);
 
-        if(optional.isPresent()) {
-            model.addAttribute("board", optional.get());
+            if(optional.isPresent()) {
+                model.addAttribute("board", optional.get());
+            }
         }
 
         return "write";
@@ -73,6 +100,8 @@ public class BoardController {
         if(result.hasErrors()) {
             return "write";
         }
+        UserDetails principal = getPrincipal();
+        board.setUsername(principal.getUsername());
         Board newBoard = this.boardRepository.save(board);
 
         return "redirect:/boards/detail?id="+newBoard.getId();
@@ -125,16 +154,26 @@ public class BoardController {
 
     @GetMapping(value = "/detail")
     public String detailBoard(Integer id, Model model) {
-        Optional<Board> optional = this.boardRepository.findById(id);
+        if(id != null) {
+            Optional<Board> optional = this.boardRepository.findById(id);
 
-        if(!optional.isPresent()) {
-            model.addAttribute("errorMessage", "존재하지 않는 게시글입니다.");
-            return "error";
-        } else {
-            model.addAttribute("board", optional.get());
+            if (!optional.isPresent()) {
+                model.addAttribute("errorMessage", "존재하지 않는 게시글입니다.");
+                return "error";
+            } else {
+                model.addAttribute("board", optional.get());
+            }
         }
 
+        UserDetails principal = getPrincipal();
+
+        model.addAttribute("principal", principal);
+
         return "detail";
+    }
+
+    private UserDetails getPrincipal() {
+        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     @GetMapping(value = "/delete")

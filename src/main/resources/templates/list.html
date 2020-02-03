@@ -23,11 +23,11 @@
             padding-top: 12px;
             padding-bottom: 12px;
             text-align: left;
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
         }
         .button {
-            background-color: #4CAF50; /* Green */
+            background-color: #007bff;
             border: none;
             color: white;
             padding: 15px 32px;
@@ -35,6 +35,32 @@
             text-decoration: none;
             display: inline-block;
         }
+
+        .center {
+            text-align: center;
+        }
+
+        .pagination {
+            display: inline-block;
+        }
+
+        .pagination a {
+            color: black;
+            float: left;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background-color .3s;
+            border: 1px solid #ddd;
+            margin: 0 4px;
+        }
+
+        .pagination a.active {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination a:hover:not(.active) {background-color: #ddd;}
     </style>
 </head>
 <body>
@@ -53,7 +79,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="board : ${boards}">
+            <tr th:each="board : ${boards.content}">
                 <td th:text="${board.id}"></td>
                 <td><a th:href="@{/boards/detail(id=${board.id})}" th:text="${board.title}"></a></td>
                 <td th:text="${board.name}"></td>
@@ -61,6 +87,14 @@
             </tr>
             </tbody>
         </table>
+        <br>
+        <div class="center">
+            <div class="pagination" th:each="index : ${#numbers.sequence(startPage,endPage)}">
+                <a th:href="@{/boards/list(page=${index-2})}" th:if="${index==startPage and startPage > pageGroupSize}">&laquo;</a>
+                <a th:href="@{/boards/list(page=${index-1})}" th:classappend="${currentPage == index} ? active : ''" th:text="${index}"></a>
+                <a th:href="@{/boards/list(page=${index})}" th:if="${index==endPage and endPage%pageGroupSize==0 and endPage < totalPages}">&raquo;</a>
+            </div>
+        </div>
     </div>
 </div>
 </body>

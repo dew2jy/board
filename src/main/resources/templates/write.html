@@ -22,7 +22,7 @@
         }
 
         input[type=submit] {
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
             padding: 12px 20px;
             border: none;
@@ -32,7 +32,7 @@
         }
 
         input[type=submit]:hover {
-            background-color: #45a049;
+            background-color: #007bff;
         }
 
         .container {
@@ -80,7 +80,7 @@
                 <label for="name">Name</label>
             </div>
             <div class="col-75">
-                <input type="text" id="name" th:field="*{name}" placeholder="Your name..">
+                <input type="text" id="name" th:field="*{name}" placeholder="Your name.." th:required="true">
             </div>
         </div>
         <div class="row">
@@ -88,7 +88,7 @@
                 <label for="title">Title</label>
             </div>
             <div class="col-75">
-                <input type="text" id="title" th:field="*{title}" placeholder="title..">
+                <input type="text" id="title" th:field="*{title}" placeholder="title.." th:required="true">
             </div>
         </div>
         <div class="row">
@@ -96,7 +96,7 @@
                 <label for="content">Content</label>
             </div>
             <div class="col-75">
-                <textarea id="content" th:field="*{content}" placeholder="Write something.." style="height:200px"></textarea>
+                <textarea id="content" th:field="*{content}" placeholder="Write something.." style="height:200px" th:required="true"></textarea>
             </div>
         </div>
         <div class="row">

@@ -12,8 +12,4 @@ public class BoardApplication {
 		SpringApplication.run(BoardApplication.class, args);
 	}
 
-	@Bean
-	public ModelMapper modelMapper() {
-		return new ModelMapper();
-	}
 }

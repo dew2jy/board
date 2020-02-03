@@ -13,5 +13,11 @@ import javax.validation.constraints.NotEmpty;
 @Setter
 public class AppProperties {
     @NotEmpty
-    private String spec;
+    private String userUsername;
+    @NotEmpty
+    private String userPassword;
+    @NotEmpty
+    private String user2Username;
+    @NotEmpty
+    private String user2Password;
 }

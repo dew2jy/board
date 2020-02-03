@@ -22,7 +22,7 @@
         }
 
         input[type=submit] {
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
             padding: 12px 20px;
             border: none;
@@ -32,7 +32,7 @@
         }
 
         input[type=submit]:hover {
-            background-color: #45a049;
+            background-color: #007bff;
         }
 
         .container {
@@ -69,7 +69,7 @@
         }
 
         .button {
-            background-color: #4CAF50; /* Green */
+            background-color: #007bff;
             border: none;
             color: white;
             padding: 15px 32px;
@@ -104,9 +104,9 @@
             <div class="col-75" th:text="${board.content}">
             </div>
         </div>
-        <div class="row">
-            <a class="button" th:href="@{/boards/write(id=${board.id})}">Modify</a>
-            <a class="button" th:href="@{/boards/delete(id=${board.id})}">Delete</a>
+        <div class="row" style="text-align: center;">
+            <a class="button" th:if="${principal.username == board.username}" th:href="@{/boards/write(id=${board.id})}">Modify</a>
+            <a class="button" th:if="${principal.username == board.username}" th:href="@{/boards/delete(id=${board.id})}">Delete</a>
             <a class="button" href="/boards/list">List</a>
         </div>
 </div>

@@ -29,4 +29,6 @@ public class Board {
     private Date createdDateTime;
     @UpdateTimestamp
     private Date updatedDateTime;
+    @Column(nullable=false, updatable = false)
+    private String username;
 }
