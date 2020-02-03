@@ -4,9 +4,11 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 @Builder @AllArgsConstructor @NoArgsConstructor
@@ -23,8 +25,8 @@ public class Board {
     @NotEmpty
     private String content;
     @CreationTimestamp
+    @Column(updatable = false)
     private Date createdDateTime;
     @UpdateTimestamp
     private Date updatedDateTime;
-
 }

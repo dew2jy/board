@@ -1,92 +1,150 @@
 package com.example.board.boards;
 
-import org.modelmapper.ModelMapper;
+import com.example.board.common.AppProperties;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
-import java.net.URI;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Optional;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-
 @Controller
-@RequestMapping(value="/api/boards", produces = MediaTypes.HAL_JSON_VALUE)
+@RequestMapping(value = "/boards")
 public class BoardController {
 
     private final BoardRepository boardRepository;
 
-    private final ModelMapper modelMapper;
+    private final AppProperties appProperties;
 
-    public BoardController(BoardRepository boardRepository, ModelMapper modelMapper) {
+    static final String SPEC = "http://localhost:8080/api/boards";
+
+    public BoardController(BoardRepository boardRepository, AppProperties appProperties){
         this.boardRepository = boardRepository;
-        this.modelMapper = modelMapper;
+        this.appProperties = appProperties;
     }
 
-    @PostMapping
-    public ResponseEntity createBoard(@RequestBody @Valid Board board, Errors errors) {
-        if(errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+    @GetMapping(value = "/list")
+    public String listBoards(Model model) {
+        model.addAttribute("boards", this.boardRepository.findAll());
+
+        return "list";
+    }
+
+    @GetMapping(value = "/write")
+    public String writeBoardsForm(Integer id, Board board, Model model) {
+        Optional<Board> optional = this.boardRepository.findById(id);
+
+        if(optional.isPresent()) {
+            model.addAttribute("board", optional.get());
         }
 
+        return "write";
+    }
+
+    @PostMapping(value = "/write")
+    public String writeBoards(@Valid Board board, BindingResult result){
+        /*
+        ObjectMapper objectMapper = new ObjectMapper();
+        String boardJson = objectMapper.writeValueAsString(board);
+
+        if (connectRESTAPI(HttpMethod.POST.toString(), boardJson, model)) return "board";
+
+        model.addAttribute("errorMessage", "error");
+        return "error";
+        */
+
+        if(result.hasErrors()) {
+            return "write";
+        }
         Board newBoard = this.boardRepository.save(board);
-        WebMvcLinkBuilder selfLinkBuilder = linkTo(BoardController.class).slash(newBoard.getId());
-        URI createdUri = selfLinkBuilder.toUri();
 
-        BoardResource boardResource = new BoardResource(board);
-        boardResource.add(linkTo(BoardController.class).withRel("query-boards"));
-        boardResource.add(selfLinkBuilder.withRel("update-board"));
-        boardResource.add(selfLinkBuilder.withRel("delete-board"));
-
-        return ResponseEntity.created(createdUri).body(boardResource);
+        return "redirect:/boards/detail?id="+newBoard.getId();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity getBoard(@PathVariable Integer id) {
-        Optional<Board> optionalBoard = this.boardRepository.findById(id);
-        if(!optionalBoard.isPresent()) {
-            return ResponseEntity.notFound().build();
+    //REST API 연동
+    private static boolean connectRESTAPI(String method,  String body, Model model) throws IOException {
+        URL url = new URL(SPEC);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(5000);
+        conn.setRequestMethod(HttpMethod.POST.toString());
+
+        //header
+        conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        conn.setRequestProperty(HttpHeaders.ACCEPT, MediaTypes.HAL_JSON_VALUE);
+        conn.setDoInput(true);
+
+        if(body != null) {
+            conn.setDoOutput(true);
+
+            OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+            wr.write(body);
+            wr.flush();
         }
-        Board board = optionalBoard.get();
-        BoardResource boardResource = new BoardResource(board);
-        return ResponseEntity.ok(boardResource);
+
+        StringBuilder sb = new StringBuilder();
+        if(conn.getResponseCode() == HttpStatus.CREATED.value()) {
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream(), "utf-8"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            br.close();
+
+            String s = sb.toString();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            Board resBoard = objectMapper.readValue(s, Board.class);
+            model.addAttribute("board", resBoard);
+            return true;
+        } else {
+            System.out.println(conn.getResponseMessage());
+        }
+        return false;
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity updateBoard(@PathVariable Integer id,
-                                      @RequestBody @Valid Board board,
-                                      Errors errors) {
-        Optional<Board> optionalBoard = this.boardRepository.findById(id);
-        if(!optionalBoard.isPresent()) {
-            return ResponseEntity.notFound().build();
+    @GetMapping(value = "/detail")
+    public String detailBoard(Integer id, Model model) {
+        Optional<Board> optional = this.boardRepository.findById(id);
+
+        if(!optional.isPresent()) {
+            model.addAttribute("errorMessage", "존재하지 않는 게시글입니다.");
+            return "error";
+        } else {
+            model.addAttribute("board", optional.get());
         }
 
-        if(errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
-        }
-
-        Board originBoard = optionalBoard.get();
-        this.modelMapper.map(board, originBoard);
-        this.boardRepository.save(originBoard);
-
-        BoardResource boardResource = new BoardResource(originBoard);
-        return ResponseEntity.ok(boardResource);
+        return "detail";
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity deleteBoard(@PathVariable Integer id) {
-        Optional<Board> optionalBoard = this.boardRepository.findById(id);
-        if(!optionalBoard.isPresent()) {
-            return ResponseEntity.notFound().build();
+    @GetMapping(value = "/delete")
+    public String deleteBoard(Integer id, Model model) {
+        try {
+            this.boardRepository.deleteById(id);
+        } catch(EmptyResultDataAccessException e) {
+            model.addAttribute("errorMessage", "존재하지 않는 게시글입니다.");
+            return "error";
         }
-
-        Board board = optionalBoard.get();
-        this.boardRepository.delete(board);
-
-        return ResponseEntity.noContent().build();
+        return "redirect:/boards/list";
     }
 }
