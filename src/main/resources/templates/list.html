@@ -3,67 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title></title>
-    <style>
-        #boards {
-            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        #boards td, #boards th {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        #boards tr:nth-child(even){background-color: #f2f2f2;}
-
-        #boards tr:hover {background-color: #ddd;}
-
-        #boards th {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            text-align: left;
-            background-color: #007bff;
-            color: white;
-        }
-        .button {
-            background-color: #007bff;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .center {
-            text-align: center;
-        }
-
-        .pagination {
-            display: inline-block;
-        }
-
-        .pagination a {
-            color: black;
-            float: left;
-            padding: 8px 16px;
-            text-decoration: none;
-            transition: background-color .3s;
-            border: 1px solid #ddd;
-            margin: 0 4px;
-        }
-
-        .pagination a.active {
-            background-color: #007bff;
-            color: white;
-            border: 1px solid #007bff;
-        }
-
-        .pagination a:hover:not(.active) {background-color: #ddd;}
-    </style>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
 </head>
 <body>
+<ul th:replace="layout/common :: header"/>
 <div th:switch="${boards}">
     <h2 th:case="null">No boards yet!</h2>
     <div th:case="*">
