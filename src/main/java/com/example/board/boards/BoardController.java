@@ -1,6 +1,7 @@
 package com.example.board.boards;
 
 import com.example.board.common.AppProperties;
+import com.example.board.common.Util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -100,7 +101,7 @@ public class BoardController {
         if(result.hasErrors()) {
             return "write";
         }
-        UserDetails principal = getPrincipal();
+        UserDetails principal = Util.getPrincipal();
         board.setUsername(principal.getUsername());
         Board newBoard = this.boardRepository.save(board);
 
@@ -165,15 +166,11 @@ public class BoardController {
             }
         }
 
-        UserDetails principal = getPrincipal();
+        UserDetails principal = Util.getPrincipal();
 
         model.addAttribute("principal", principal);
 
         return "detail";
-    }
-
-    private UserDetails getPrincipal() {
-        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     @GetMapping(value = "/delete")
