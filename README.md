@@ -1,6 +1,6 @@
 # board
 
-* 구현 설명
+## * 구현 설명
 기술스택 : java, spring boot, jpa, h2 in-memory db, spring security, swagger, thymeleaf, lombok
 1. 초기 세팅값은 WebConfig 클래스에서 applicationRunner 메소드를 오버라이드하여 설정하였습니다.
 ~~~
