@@ -114,7 +114,7 @@ public class BoardController {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(5000);
         conn.setReadTimeout(5000);
-        conn.setRequestMethod(HttpMethod.POST.toString());
+        conn.setRequestMethod(method);
 
         //header
         conn.setRequestProperty(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
